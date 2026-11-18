@@ -1,0 +1,17 @@
+{
+  "name": "Adopte un dinosaure",
+  "short_name": "Adopte un dino",
+  "description": "Élève ton dinosaure depuis l’œuf, fais-le grandir, puis deviens champion de l’arène !",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#9fcf7e",
+  "theme_color": "#2f6b3a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

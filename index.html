@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adopte un dinosaure</title>
+<meta name="description" content="Élève ton dinosaure depuis l’œuf, fais-le grandir, puis deviens champion de l’arène !">
+<meta name="theme-color" content="#2f6b3a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Adopte un dino">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --vert:#2f6b3a; --vert-clair:#e3f1d6; --sable:#fff8ea; --brun:#5b3a22;
+    --orange:#f08a3c; --rouge:#d9483b; --bleu:#3d7fc4; --texte:#2b2620;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Baloo 2',system-ui,sans-serif;color:var(--texte);
+    background:radial-gradient(circle at 20% 0%,#cfeab4 0,#9fcf7e 40%,#5f9c4f 100%) fixed;
+    min-height:100vh;
+  }
+  #app{max-width:480px;margin:0 auto;padding:14px 12px 40px}
+  h1{font-size:30px;line-height:1;margin:6px 0 2px;color:#fff;text-shadow:0 3px 0 var(--vert),0 6px 12px rgba(0,0,0,.25);text-align:center;letter-spacing:.5px}
+  .sous-titre{text-align:center;color:#f3ffe9;margin:0 0 14px;font-weight:600}
+  .carte{background:var(--sable);border-radius:22px;padding:14px;box-shadow:0 6px 0 rgba(60,40,20,.18),0 10px 24px rgba(0,0,0,.12);margin-bottom:12px}
+  .entete{display:flex;align-items:center;gap:10px}
+  .entete .nom{font-size:22px;font-weight:800;line-height:1.1}
+  .entete .info{font-size:14px;color:#6c5a44}
+  .badge{display:inline-block;background:var(--vert);color:#fff;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:700;margin-left:4px}
+  .pieces{margin-left:auto;background:#ffe9a8;border:2px solid #e7c25a;border-radius:999px;padding:2px 12px;font-weight:800;white-space:nowrap}
+  .xp{height:10px;background:#eadfc8;border-radius:99px;overflow:hidden;margin-top:8px}
+  .xp i{display:block;height:100%;background:linear-gradient(90deg,#8ad05e,#3f9b45);border-radius:99px;transition:width .4s}
+  .xp-txt{font-size:12px;color:#7a6a55;text-align:right;margin-top:2px}
+  .onglets{display:flex;gap:6px;margin-bottom:12px}
+  .onglets button{flex:1;border:none;border-radius:16px;padding:9px 4px;font:inherit;font-weight:700;font-size:15px;background:rgba(255,255,255,.55);color:var(--vert);cursor:pointer}
+  .onglets button.actif{background:#fff;box-shadow:0 4px 0 rgba(47,107,58,.35)}
+  .scene{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(#bfe6ff 0,#e6f6ff 55%,#9ed36f 55%,#7fbd57 100%);height:230px;display:flex;align-items:flex-end;justify-content:center}
+  .scene.nuit{background:linear-gradient(#24305e 0,#4a4f86 55%,#4c7a3c 55%,#3d6630 100%)}
+  .scene .soleil{position:absolute;top:16px;right:22px;width:38px;height:38px;border-radius:50%;background:#ffd95a;box-shadow:0 0 0 8px rgba(255,217,90,.3)}
+  .scene.nuit .soleil{background:#f4f1dc;box-shadow:0 0 0 8px rgba(244,241,220,.15)}
+  .scene .nuage{position:absolute;top:30px;left:20px;width:70px;height:22px;border-radius:20px;background:#fff;opacity:.85}
+  .scene .nuage::after{content:"";position:absolute;width:34px;height:28px;border-radius:50%;background:#fff;left:14px;top:-14px}
+  .scene.nuit .nuage{opacity:.15}
+  .scene .volcan{position:absolute;left:-10px;bottom:45%;width:0;height:0;border-left:70px solid transparent;border-right:70px solid transparent;border-bottom:70px solid #8c7b69;opacity:.55}
+  svg.dino{width:100%;max-width:320px;height:auto;display:block;position:relative;z-index:1}
+  .bob{animation:bob 2.6s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .wobble{animation:wobble 1.8s ease-in-out infinite;transform-origin:50% 95%;transform-box:fill-box}
+  @keyframes wobble{0%,100%{transform:rotate(0)}20%{transform:rotate(-5deg)}40%{transform:rotate(4deg)}60%{transform:rotate(0)}}
+  .shake{animation:shake .45s}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+  .hop{animation:hop .5s}
+  @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-22px)}}
+  .humeur{text-align:center;font-weight:700;font-size:17px;margin:10px 0 6px}
+  .besoins{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  .besoin .lab{display:flex;justify-content:space-between;font-size:14px;font-weight:600}
+  .barre{height:12px;background:#eadfc8;border-radius:99px;overflow:hidden}
+  .barre i{display:block;height:100%;border-radius:99px;transition:width .5s,background .5s}
+  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .btn{border:none;border-radius:16px;padding:10px 6px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;background:#fff;color:var(--texte);box-shadow:0 4px 0 #d9ccb2;transition:transform .08s}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #d9ccb2}
+  .btn .em{display:block;font-size:24px;line-height:1.1}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn.principal{background:var(--orange);color:#fff;box-shadow:0 4px 0 #b9621f;font-size:17px;padding:12px}
+  .btn.vert{background:#3f9b45;color:#fff;box-shadow:0 4px 0 #2b6e30}
+  .btn.rouge{background:var(--rouge);color:#fff;box-shadow:0 4px 0 #9c2f25}
+  .btn.large{width:100%}
+  .petit{font-size:13px;color:#7a6a55}
+  .stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .stats span{background:#fff;border-radius:10px;padding:2px 9px;font-size:14px;font-weight:700;box-shadow:0 2px 0 #e3d6bc}
+  .especes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .espece{border:3px solid transparent;background:#fff;border-radius:18px;padding:6px 6px 8px;cursor:pointer;text-align:center;font:inherit;color:inherit}
+  .espece.choisi{border-color:var(--orange);background:#fff3e6}
+  .espece svg{max-width:140px;margin:0 auto}
+  .espece b{display:block;font-size:16px}
+  .espece small{color:#7a6a55;font-size:12.5px}
+  input[type=text]{width:100%;font:inherit;font-size:18px;padding:10px 14px;border-radius:14px;border:2px solid #e0d2b4;background:#fff;outline:none;margin:10px 0}
+  input[type=text]:focus{border-color:var(--orange)}
+  .combat-scene{display:flex;align-items:flex-end;height:210px}
+  .combat-scene .cote{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;z-index:1;padding:0 4px}
+  .pv-box{background:rgba(255,255,255,.88);border-radius:12px;padding:4px 8px;font-size:13px;font-weight:700;margin-bottom:auto;margin-top:8px}
+  .pv-box .barre{height:9px;margin-top:2px}
+  .journal{background:#fff;border-radius:14px;padding:8px 12px;font-size:14px;min-height:70px;margin:10px 0}
+  .journal p{margin:2px 0}
+  .journal p:first-child{font-weight:700}
+  .coups{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .boutique-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:16px;padding:10px 12px;margin-bottom:8px}
+  .boutique-item .em{font-size:30px}
+  .boutique-item div{flex:1}
+  .boutique-item b{display:block}
+  .verrou{text-align:center;padding:20px 8px}
+  .verrou .em{font-size:50px}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);background:#2b2620;color:#fff;padding:10px 18px;border-radius:16px;font-weight:600;max-width:92%;text-align:center;transition:transform .3s;z-index:20}
+  .toast.on{transform:translateX(-50%) translateY(0)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:20px}
+  .modal .carte{max-width:340px;text-align:center}
+  .pied{text-align:center;margin-top:16px}
+  .lien{background:none;border:none;color:#f3ffe9;text-decoration:underline;font:inherit;font-size:13px;cursor:pointer}
+  .resultat{text-align:center;font-size:22px;font-weight:800;margin:6px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+<script>
+/* ========= Données du jeu ========= */
+const SPECIES = {
+  rex:   {nom:'T-Rex',       couleur:'#e2674a', ventre:'#f8cfa6', pv:60, force:14, def:8,  vit:9,  desc:'Puissant et féroce'},
+  trice: {nom:'Tricératops', couleur:'#58a85c', ventre:'#d9efc2', pv:70, force:10, def:13, vit:6,  desc:'Une vraie forteresse'},
+  stego: {nom:'Stégosaure',  couleur:'#4f8ed0', ventre:'#d3e5f8', pv:65, force:12, def:11, vit:7,  desc:'Équilibré et robuste'},
+  ptero: {nom:'Ptérodactyle',couleur:'#9a6bd1', ventre:'#e8daf8', pv:50, force:11, def:7,  vit:14, desc:'Rapide comme le vent'}
+};
+const STAGES = [{nom:'Œuf',scale:1},{nom:'Bébé',scale:.55},{nom:'Jeune',scale:.78},{nom:'Adulte',scale:1}];
+const NIVEAU_JEUNE = 3, NIVEAU_ADULTE = 5;
+const NOMS_SAUVAGES = ['Krokor','Dentalame','Grosse-Patte','Écailleux','Tonnerre','Mâchoire','Griffu','Ombre-Verte','Roc','Fracas','Épine','Croc-Noir'];
+const MOVES = {
+  morsure: {nom:'Morsure',       emoji:'🦷', mult:1,   acc:.95, aide:'Fiable'},
+  queue:   {nom:'Coup de queue', emoji:'💥', mult:1.6, acc:.7,  aide:'Puissant, peut rater'},
+  defense: {nom:'Carapace',      emoji:'🛡️', aide:'Bloque la moitié du prochain coup, soigne un peu'},
+  rugir:   {nom:'Rugissement',   emoji:'📢', aide:'Baisse la force adverse'}
+};
+const SHOP = [
+  {id:'steak',  nom:'Steak géant',          emoji:'🍖', prix:15, desc:'Faim au maximum et +10 bonheur', f:d=>{d.faim=100; d.bonheur=clamp(d.bonheur+10);}},
+  {id:'ballon', nom:'Ballon en os',         emoji:'🦴', prix:12, desc:'Bonheur au maximum',              f:d=>{d.bonheur=100;}},
+  {id:'potion', nom:'Potion d’énergie',     emoji:'🧪', prix:20, desc:'Énergie au maximum',              f:d=>{d.energie=100; d.dort=false;}},
+  {id:'rocher', nom:'Rocher d’entraînement',emoji:'🪨', prix:60, desc:'+2 force pour toujours',          f:d=>{d.bonus.force+=2;}},
+  {id:'ecaill', nom:'Écailles renforcées',  emoji:'🛡️', prix:60, desc:'+2 défense pour toujours',        f:d=>{d.bonus.def+=2;}},
+  {id:'plume',  nom:'Plume du vent',        emoji:'🪶', prix:60, desc:'+2 vitesse pour toujours',        f:d=>{d.bonus.vit+=2;}}
+];
+
+/* ========= Outils ========= */
+const clamp = (v,a=0,b=100)=>Math.max(a,Math.min(b,v));
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const randInt = (a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function shade(hex,amt){const n=parseInt(hex.slice(1),16);const f=x=>Math.max(0,Math.min(255,x+amt));return '#'+((1<<24)|(f(n>>16)<<16)|(f((n>>8)&255)<<8)|f(n&255)).toString(16).slice(1);}
+const xpNeeded = n=>60+n*40;
+function stageOf(d){ if(!d.eclos) return 0; if(d.niveau<NIVEAU_JEUNE) return 1; if(d.niveau<NIVEAU_ADULTE) return 2; return 3; }
+function stats(esp,niveau,bonus){const s=SPECIES[esp];return{pvMax:s.pv+niveau*10,force:s.force+niveau*2+(bonus.force||0),def:s.def+niveau*2+(bonus.def||0),vit:s.vit+niveau*2+(bonus.vit||0)};}
+
+/* ========= État et sauvegarde ========= */
+const CLE='adopte-un-dinosaure-v1';
+let S = {dino:null, onglet:'maison', combat:null, choix:'rex', nomTmp:'', modal:false, anim:null};
+function save(){ try{ if(S.dino){S.dino.last=Date.now();} localStorage.setItem(CLE, JSON.stringify({dino:S.dino, combat:S.combat})); }catch(e){} }
+function load(){ try{ const r=JSON.parse(localStorage.getItem(CLE)||'null'); if(r&&r.dino){ S.dino=r.dino; S.combat=r.combat||null; } }catch(e){} }
+
+let toastTimer;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('on'),2800); }
+
+/* ========= Dessins ========= */
+function eye(x,y,dort){
+  return dort ? `<path d="M${x-6} ${y} q6 5 12 0" stroke="#2b2b2b" stroke-width="3" fill="none" stroke-linecap="round"/>`
+              : `<circle cx="${x}" cy="${y}" r="7" fill="#fff"/><circle cx="${x+2}" cy="${y}" r="3.6" fill="#222"/><circle cx="${x+3.2}" cy="${y-1.6}" r="1.2" fill="#fff"/>`;
+}
+function dinoSVG(esp,{stage=3,flip=false,dort=false,sale=false,couleur=null,id='',cls='bob'}={}){
+  const s=SPECIES[esp], c=couleur||s.couleur, dk=shade(c,-38), md=shade(c,-18), v=s.ventre, os='#f4ecd2';
+  const sc=STAGES[stage].scale; let g='';
+  if(esp==='rex'){ g=`
+    <path d="M72 92 Q30 95 6 132 Q42 118 80 116 Z" fill="${c}"/>
+    <rect x="74" y="112" width="18" height="38" rx="8" fill="${dk}"/>
+    <ellipse cx="95" cy="100" rx="38" ry="30" fill="${c}"/>
+    <ellipse cx="106" cy="108" rx="22" ry="18" fill="${v}"/>
+    <rect x="100" y="116" width="18" height="34" rx="8" fill="${c}"/>
+    <ellipse cx="124" cy="80" rx="17" ry="24" fill="${c}"/>
+    <path d="M127 98 q12 2 13 13" stroke="${dk}" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="147" cy="76" rx="25" ry="9" fill="${dk}"/>
+    <ellipse cx="142" cy="60" rx="30" ry="18" fill="${c}"/>
+    <path d="M132 74 L135 80 L138 74 L141 80 L144 74 L147 80 L150 74 L153 80 L156 74 L159 80 L162 74 Z" fill="#fff"/>
+    <circle cx="166" cy="56" r="2.2" fill="${dk}"/>
+    ${eye(145,53,dort)}`; }
+  if(esp==='trice'){ g=`
+    <path d="M58 98 Q22 100 8 122 Q34 120 62 116 Z" fill="${c}"/>
+    <rect x="66" y="112" width="16" height="38" rx="7" fill="${dk}"/>
+    <rect x="118" y="112" width="16" height="38" rx="7" fill="${dk}"/>
+    <ellipse cx="100" cy="100" rx="50" ry="30" fill="${c}"/>
+    <ellipse cx="102" cy="113" rx="34" ry="13" fill="${v}"/>
+    <rect x="84" y="114" width="16" height="36" rx="7" fill="${c}"/>
+    <rect x="136" y="112" width="16" height="38" rx="7" fill="${c}"/>
+    <circle cx="150" cy="84" r="28" fill="${dk}"/>
+    <circle cx="150" cy="84" r="19" fill="${md}"/>
+    <ellipse cx="164" cy="98" rx="24" ry="17" fill="${c}"/>
+    <path d="M156 84 L178 56 L166 88 Z" fill="${os}"/>
+    <path d="M170 86 L196 66 L176 92 Z" fill="${os}"/>
+    <path d="M182 98 L198 90 L184 104 Z" fill="${os}"/>
+    <path d="M168 108 q8 4 16 -2" stroke="${dk}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    ${eye(168,93,dort)}`; }
+  if(esp==='stego'){
+    const plaques=[[62,82],[78,72],[96,68],[114,70],[130,78]].map(([x,y])=>`<path d="M${x-11} ${y+16} L${x} ${y-18} L${x+11} ${y+16} Z" fill="${dk}"/>`).join('');
+    g=`${plaques}
+    <path d="M56 100 Q24 96 6 112 Q30 118 60 114 Z" fill="${c}"/>
+    <path d="M14 108 L4 90 L22 105 Z M28 104 L22 86 L36 103 Z" fill="${os}"/>
+    <rect x="68" y="114" width="16" height="36" rx="7" fill="${dk}"/>
+    <rect x="120" y="114" width="16" height="36" rx="7" fill="${dk}"/>
+    <ellipse cx="98" cy="102" rx="48" ry="28" fill="${c}"/>
+    <ellipse cx="100" cy="114" rx="32" ry="12" fill="${v}"/>
+    <rect x="84" y="116" width="16" height="34" rx="7" fill="${c}"/>
+    <rect x="134" y="114" width="16" height="36" rx="7" fill="${c}"/>
+    <ellipse cx="146" cy="108" rx="16" ry="11" fill="${c}"/>
+    <ellipse cx="164" cy="114" rx="16" ry="11" fill="${c}"/>
+    <path d="M168 121 q6 2 10 -2" stroke="${dk}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    ${eye(166,110,dort)}`; }
+  if(esp==='ptero'){ g=`
+    <path d="M104 86 L26 50 L42 82 L34 106 Z" fill="${dk}"/>
+    <rect x="96" y="118" width="7" height="32" rx="3" fill="${dk}"/>
+    <rect x="110" y="118" width="7" height="32" rx="3" fill="${dk}"/>
+    <ellipse cx="106" cy="100" rx="24" ry="28" fill="${c}"/>
+    <ellipse cx="110" cy="106" rx="14" ry="18" fill="${v}"/>
+    <path d="M110 90 L186 60 L168 90 L176 110 Z" fill="${md}"/>
+    <ellipse cx="118" cy="78" rx="9" ry="14" fill="${c}"/>
+    <path d="M120 56 L84 40 L124 66 Z" fill="${dk}"/>
+    <ellipse cx="130" cy="62" rx="16" ry="13" fill="${c}"/>
+    <path d="M140 57 L184 66 L140 70 Z" fill="#f2c14e"/>
+    ${eye(131,58,dort)}`; }
+  const boue = sale ? `<g fill="#7b5634" opacity=".75"><ellipse cx="88" cy="96" rx="7" ry="5"/><ellipse cx="112" cy="90" rx="5" ry="4"/><ellipse cx="100" cy="116" rx="6" ry="4"/><circle cx="76" cy="106" r="3.5"/><circle cx="122" cy="104" r="2.5"/></g>` : '';
+  let inner = `<g transform="translate(110 150) scale(${sc}) translate(-110 -150)">${g}${boue}</g>`;
+  if(flip) inner = `<g transform="translate(220 0) scale(-1 1)">${inner}</g>`;
+  const zzz = dort ? `<text x="${flip?30:168}" y="${150-110*sc}" font-size="20" font-weight="800" fill="#fff" font-family="Baloo 2">Z<tspan font-size="14" dy="-10">z</tspan><tspan font-size="10" dy="-8">z</tspan></text>` : '';
+  return `<svg ${id?`id="${id}"`:''} class="dino ${cls}" viewBox="0 0 220 165" aria-label="${s.nom}"><ellipse cx="110" cy="151" rx="${58*sc}" ry="6" fill="rgba(0,0,0,.15)"/>${inner}${zzz}</svg>`;
+}
+function oeufSVG(esp,chaleur){
+  const c=SPECIES[esp].couleur;
+  const fissure = chaleur>=40 ? `<path d="M88 92 L98 100 L94 108 L106 114 L102 122" stroke="#8a7350" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : '';
+  const fissure2 = chaleur>=80 ? `<path d="M132 76 L124 86 L132 92 L122 100" stroke="#8a7350" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : '';
+  return `<svg class="dino" viewBox="0 0 220 165" aria-label="Œuf"><ellipse cx="110" cy="151" rx="42" ry="6" fill="rgba(0,0,0,.15)"/>
+    <g class="wobble"><path d="M110 36 C68 36 64 112 72 128 C82 154 138 154 148 128 C156 112 152 36 110 36 Z" fill="#fbf1dc" stroke="#e0cfa8" stroke-width="3"/>
+    <ellipse cx="96" cy="72" rx="10" ry="7" fill="${c}" opacity=".75"/><ellipse cx="126" cy="104" rx="12" ry="8" fill="${c}" opacity=".75"/>
+    <circle cx="118" cy="60" r="5" fill="${c}" opacity=".75"/><circle cx="92" cy="124" r="6" fill="${c}" opacity=".75"/>${fissure}${fissure2}</g></svg>`;
+}
+
+/* ========= Logique d'élevage ========= */
+function gainXP(x, sansPenalite){
+  const d=S.dino;
+  if(!sansPenalite && (d.faim<25||d.bonheur<25||d.proprete<25)){ x=Math.round(x/2); }
+  const avant=stageOf(d); d.xp+=x; let msgs=[];
+  while(d.xp>=xpNeeded(d.niveau)){ d.xp-=xpNeeded(d.niveau); d.niveau++; msgs.push(`⭐ ${d.nom} passe au niveau ${d.niveau} !`); }
+  const apres=stageOf(d);
+  if(apres>avant){ msgs.push(apres===3 ? `🎉 ${d.nom} est maintenant ADULTE ! L’arène est ouverte !` : `🌱 ${d.nom} a grandi : il est maintenant ${STAGES[apres].nom} !`); S.anim='hop'; }
+  if(msgs.length) toast(msgs.join(' '));
+  return x;
+}
+function decay(n, live){
+  const d=S.dino; if(!d||!d.eclos||n<=0) return false;
+  const etaitDort=d.dort;
+  d.faim=clamp(d.faim-0.7*n); d.proprete=clamp(d.proprete-0.45*n);
+  if(d.dort){ d.energie=clamp(d.energie+3*n); if(d.energie>=100){ d.dort=false; if(live) toast(`☀️ ${d.nom} se réveille en pleine forme !`);} }
+  else d.energie=clamp(d.energie-0.35*n);
+  d.bonheur=clamp(d.bonheur-((d.faim<25||d.proprete<25)?1.1:0.45)*n);
+  return etaitDort!==d.dort;
+}
+function adopter(){
+  const nom=(S.nomTmp||'').trim();
+  if(!nom){ toast('Donne un nom à ton dinosaure !'); return; }
+  S.dino={espece:S.choix, nom:nom.slice(0,16), eclos:false, chaleur:0, niveau:1, xp:0, faim:80, bonheur:80, energie:80, proprete:90,
+          bonus:{force:0,def:0,vit:0}, dort:false, pieces:20, victoires:0, defaites:0, last:Date.now()};
+  S.onglet='maison'; save(); render(); toast(`Tu as adopté l’œuf de ${S.dino.nom} ! Garde-le bien au chaud.`);
+}
+function action(a){
+  const d=S.dino; if(!d) return;
+  if(a==='chauffer'){
+    d.chaleur=clamp(d.chaleur+randInt(14,22));
+    if(d.chaleur>=100){ d.eclos=true; S.anim='hop'; toast(`🐣 Crac ! ${d.nom} est né ! Prends bien soin de lui.`); }
+    save(); render(); return;
+  }
+  if(d.dort && a!=='dormir'){ toast(`${d.nom} dort… chut !`); return; }
+  switch(a){
+    case 'nourrir':
+      if(d.faim>=95){ toast(`${d.nom} n’a plus faim !`); return; }
+      d.faim=clamp(d.faim+30); d.proprete=clamp(d.proprete-4); gainXP(10); S.anim='hop'; toast('🍗 Miam !'); break;
+    case 'jouer':
+      if(d.energie<10){ toast(`${d.nom} est trop fatigué pour jouer.`); return; }
+      d.bonheur=clamp(d.bonheur+25); d.energie=clamp(d.energie-10); d.proprete=clamp(d.proprete-8); d.faim=clamp(d.faim-5); gainXP(15); S.anim='hop'; break;
+    case 'laver':
+      if(d.proprete>=95){ toast(`${d.nom} est déjà tout propre !`); return; }
+      d.proprete=100; d.bonheur=clamp(d.bonheur+3); gainXP(8); toast('🫧 Tout propre !'); break;
+    case 'dormir':
+      d.dort=!d.dort; toast(d.dort?`💤 Bonne nuit ${d.nom}…`:`${d.nom} se réveille.`); break;
+    case 'entrainer':{
+      if(stageOf(d)<2){ toast(`${d.nom} est encore trop petit pour s’entraîner.`); return; }
+      if(d.energie<20){ toast(`${d.nom} est trop fatigué pour s’entraîner.`); return; }
+      d.energie=clamp(d.energie-20); d.faim=clamp(d.faim-12); gainXP(22);
+      if(Math.random()<.5){ const k=pick(['force','def','vit']); d.bonus[k]++; toast(`💪 Entraînement réussi : +1 ${({force:'force',def:'défense',vit:'vitesse'})[k]} !`); }
+      else toast('💪 Bon entraînement !');
+      S.anim='hop'; break; }
+  }
+  save(); render();
+}
+function acheter(id){
+  const d=S.dino, it=SHOP.find(x=>x.id===id);
+  if(d.pieces<it.prix){ toast('Pas assez de pièces ! Gagne des combats pour en avoir.'); return; }
+  d.pieces-=it.prix; it.f(d); save(); render(); toast(`${it.emoji} ${it.nom} acheté !`);
+}
+
+/* ========= Combats ========= */
+function statsJ(){ const d=S.dino; return stats(d.espece,d.niveau,d.bonus); }
+function statsA(){ const a=S.combat.adv; return stats(a.espece,a.niveau,a.bonus); }
+function lancerCombat(){
+  const d=S.dino;
+  if(d.dort){ toast(`${d.nom} dort. Réveille-le d’abord !`); return; }
+  if(d.energie<25){ toast(`${d.nom} est trop fatigué pour combattre (25 d’énergie minimum).`); return; }
+  if(d.faim<20){ toast(`${d.nom} a trop faim pour combattre !`); return; }
+  d.energie=clamp(d.energie-25);
+  const esp=pick(Object.keys(SPECIES)), niv=Math.max(NIVEAU_ADULTE, d.niveau+randInt(-1,1)), b=Math.floor(niv/3);
+  const adv={espece:esp, nom:pick(NOMS_SAUVAGES), niveau:niv, bonus:{force:randInt(0,b),def:randInt(0,b),vit:randInt(0,b)}};
+  S.combat={adv, pv:0, pvAdv:0, def:{j:false,a:false}, rug:{j:0,a:0}, log:[], fini:null, hit:null};
+  S.combat.pv=statsJ().pvMax; S.combat.pvAdv=statsA().pvMax;
+  S.combat.log=[`Un ${SPECIES[esp].nom} sauvage, ${adv.nom} (niv. ${niv}), entre dans l’arène !`];
+  save(); render();
+}
+function journal(m){ S.combat.log.unshift(m); S.combat.log=S.combat.log.slice(0,6); }
+function agir(qui, coup){
+  const C=S.combat, autre=qui==='j'?'a':'j';
+  const moi = qui==='j'?{st:statsJ(),nom:S.dino.nom}:{st:statsA(),nom:C.adv.nom};
+  const lui = qui==='j'?{st:statsA(),nom:C.adv.nom}:{st:statsJ(),nom:S.dino.nom};
+  const m=MOVES[coup]; C.def[qui]=false;
+  const setPV=(w,delta)=>{ if(w==='j') C.pv=clamp(C.pv+delta,0,statsJ().pvMax); else C.pvAdv=clamp(C.pvAdv+delta,0,statsA().pvMax); };
+  if(coup==='defense'){ C.def[qui]=true; const soin=Math.round(moi.st.pvMax*.06); setPV(qui,soin); journal(`🛡️ ${moi.nom} se protège et récupère ${soin} PV.`); return; }
+  if(coup==='rugir'){ if(C.rug[autre]<2){ C.rug[autre]++; journal(`📢 ${moi.nom} rugit ! La force de ${lui.nom} baisse.`);} else journal(`📢 ${moi.nom} rugit… mais ${lui.nom} n’a plus peur.`); return; }
+  if(Math.random()>m.acc){ journal(`${m.emoji} ${moi.nom} tente ${m.nom}… et rate !`); return; }
+  const force=moi.st.force*(1-.15*C.rug[qui]);
+  let dmg=Math.max(2,Math.round(force*1.2*m.mult*(.85+Math.random()*.3)-lui.st.def*.4));
+  const crit=Math.random()<.08; if(crit) dmg=Math.round(dmg*1.5);
+  let bloque=false; if(C.def[autre]){ dmg=Math.max(1,Math.round(dmg/2)); C.def[autre]=false; bloque=true; }
+  setPV(autre,-dmg); C.hit=autre;
+  journal(`${m.emoji} ${moi.nom} utilise ${m.nom} : ${dmg} dégâts${crit?' — coup critique !':''}${bloque?' (réduits par la carapace)':''}`);
+}
+function choixIA(){
+  const C=S.combat;
+  if(C.pvAdv<statsA().pvMax*.3 && Math.random()<.35) return 'defense';
+  const r=Math.random(); if(r<.5) return 'morsure'; if(r<.8) return 'queue'; return C.rug.j<2?'rugir':'morsure';
+}
+function tour(coup){
+  const C=S.combat; if(!C||C.fini) return; C.hit=null;
+  const ordre = statsJ().vit>=statsA().vit ? ['j','a'] : ['a','j'];
+  for(const w of ordre){ if(C.pv<=0||C.pvAdv<=0) break; agir(w, w==='j'?coup:choixIA()); }
+  const d=S.dino;
+  if(C.pvAdv<=0){
+    const xp=40+10*C.adv.niveau, pieces=10+5*C.adv.niveau;
+    d.victoires++; d.pieces+=pieces; d.bonheur=clamp(d.bonheur+10);
+    C.fini={gagne:true,xp,pieces}; journal(`🏆 ${d.nom} remporte le combat !`); gainXP(xp,true);
+  } else if(C.pv<=0){
+    d.defaites++; d.bonheur=clamp(d.bonheur-15); C.fini={gagne:false,xp:10,pieces:0};
+    journal(`😵 ${d.nom} est K.O…`); gainXP(10,true);
+  }
+  save(); render();
+  if(C.hit){ const el=document.getElementById('dino-'+C.hit); if(el){ el.classList.remove('bob'); void el.offsetWidth; el.classList.add('shake'); } }
+}
+function fuir(){ S.dino.bonheur=clamp(S.dino.bonheur-5); S.combat=null; save(); render(); toast('Tu as quitté l’arène.'); }
+function finCombat(){ S.combat=null; save(); render(); }
+
+/* ========= Affichage ========= */
+function couleurBarre(v){ return v>60?'#4caf50':v>30?'#f0a830':'#e0493b'; }
+function humeur(d){
+  if(!d.eclos) return '🥚 L’œuf attend un peu de chaleur…';
+  if(d.dort) return '💤 Il dort paisiblement';
+  if(d.faim<25) return '😫 Il a très faim !';
+  if(d.energie<20) return '🥱 Il est épuisé';
+  if(d.proprete<25) return '🤢 Il est tout sale';
+  if(d.bonheur<30) return '😢 Il s’ennuie, joue avec lui';
+  return '😄 Il est heureux !';
+}
+function viewAdoption(){
+  const cartes=Object.entries(SPECIES).map(([k,s])=>`
+    <button class="espece ${S.choix===k?'choisi':''}" data-act="choisir" data-arg="${k}">
+      ${dinoSVG(k,{cls:''})}<b>${s.nom}</b><small>${s.desc}</small>
+    </button>`).join('');
+  const s=SPECIES[S.choix];
+  return `<h1>Adopte un dinosaure</h1><p class="sous-titre">Élève-le, fais-le grandir, puis deviens champion de l’arène !</p>
+    <div class="carte"><b>1. Choisis ton espèce</b><div class="especes" style="margin-top:8px">${cartes}</div>
+    <div class="stats"><span>❤️ PV ${s.pv}</span><span>💪 Force ${s.force}</span><span>🛡️ Déf ${s.def}</span><span>⚡ Vit ${s.vit}</span></div></div>
+    <div class="carte"><b>2. Donne-lui un nom</b>
+    <input type="text" id="nom" maxlength="16" placeholder="Ex. : Rocky, Dina, Zouzou…" value="${esc(S.nomTmp)}">
+    <button class="btn principal large" data-act="adopter">🥚 Adopter mon œuf</button></div>`;
+}
+function viewEntete(){
+  const d=S.dino, st=stageOf(d), sp=SPECIES[d.espece];
+  return `<h1>Adopte un dinosaure</h1><div style="height:10px"></div>
+  <div class="carte"><div class="entete"><div><div class="nom">${esc(d.nom)}<span class="badge">${STAGES[st].nom}</span></div>
+  <div class="info">${sp.nom}${d.eclos?` · niveau ${d.niveau}`:''}</div></div><div class="pieces">🪙 ${d.pieces}</div></div>
+  ${d.eclos?`<div class="xp"><i style="width:${Math.round(d.xp/xpNeeded(d.niveau)*100)}%"></i></div><div class="xp-txt">XP ${d.xp} / ${xpNeeded(d.niveau)}</div>`:''}</div>
+  <div class="onglets">
+    <button class="${S.onglet==='maison'?'actif':''}" data-act="onglet" data-arg="maison">🏡 Maison</button>
+    <button class="${S.onglet==='arene'?'actif':''}" data-act="onglet" data-arg="arene">⚔️ Arène</button>
+    <button class="${S.onglet==='boutique'?'actif':''}" data-act="onglet" data-arg="boutique">🛒 Boutique</button>
+  </div>`;
+}
+function barre(id,emoji,lab,v){ return `<div class="besoin"><div class="lab"><span>${emoji} ${lab}</span><span id="v-${id}">${Math.round(v)}</span></div><div class="barre"><i id="b-${id}" style="width:${v}%;background:${couleurBarre(v)}"></i></div></div>`; }
+function viewMaison(){
+  const d=S.dino, st=stageOf(d);
+  const decor=`<div class="soleil"></div><div class="nuage"></div><div class="volcan"></div>`;
+  if(!d.eclos){
+    return `<div class="carte"><div class="scene">${decor}${oeufSVG(d.espece,d.chaleur)}</div>
+      <div class="humeur">${humeur(d)}</div>
+      <div class="besoin"><div class="lab"><span>🔥 Chaleur</span><span>${d.chaleur} / 100</span></div><div class="barre"><i style="width:${d.chaleur}%;background:#f08a3c"></i></div></div>
+      <div style="margin-top:12px"><button class="btn principal large" data-act="action" data-arg="chauffer">🔥 Réchauffer l’œuf</button></div></div>`;
+  }
+  const sj=statsJ(), z=d.dort;
+  return `<div class="carte"><div class="scene ${z?'nuit':''}">${decor}${dinoSVG(d.espece,{stage:st,dort:z,sale:d.proprete<40,id:'dino-maison',cls:S.anim==='hop'?'hop':'bob'})}</div>
+    <div class="humeur" id="humeur">${humeur(d)}</div>
+    <div class="besoins">${barre('faim','🍗','Faim',d.faim)}${barre('bonheur','💛','Bonheur',d.bonheur)}${barre('energie','⚡','Énergie',d.energie)}${barre('proprete','🫧','Propreté',d.proprete)}</div>
+    <div class="actions">
+      <button class="btn" data-act="action" data-arg="nourrir" ${z?'disabled':''}><span class="em">🍗</span>Nourrir</button>
+      <button class="btn" data-act="action" data-arg="jouer" ${z?'disabled':''}><span class="em">🎾</span>Jouer</button>
+      <button class="btn" data-act="action" data-arg="laver" ${z?'disabled':''}><span class="em">🛁</span>Laver</button>
+      <button class="btn" data-act="action" data-arg="dormir"><span class="em">${z?'☀️':'🌙'}</span>${z?'Réveiller':'Dormir'}</button>
+      <button class="btn" data-act="action" data-arg="entrainer" ${z||st<2?'disabled':''}><span class="em">🏋️</span>${st<2?'Dès « Jeune »':'Entraîner'}</button>
+      <button class="btn" data-act="onglet" data-arg="arene" ${st<3?'disabled':''}><span class="em">⚔️</span>${st<3?'Dès « Adulte »':'Combattre'}</button>
+    </div>
+    <div class="stats"><span>❤️ ${sj.pvMax}</span><span>💪 ${sj.force}</span><span>🛡️ ${sj.def}</span><span>⚡ ${sj.vit}</span><span>🏆 ${d.victoires}V / ${d.defaites}D</span></div>
+    <p class="petit" style="text-align:center;margin:8px 0 0">Un dino bien nourri, propre et heureux grandit deux fois plus vite.</p></div>`;
+}
+function viewArene(){
+  const d=S.dino, st=stageOf(d);
+  if(st<3){
+    return `<div class="carte verrou"><div class="em">🔒</div><b style="font-size:20px">L’arène est réservée aux adultes</b>
+      <p>${d.eclos?`${esc(d.nom)} est au niveau ${d.niveau}. Il deviendra adulte au niveau ${NIVEAU_ADULTE}.`:'Fais d’abord éclore ton œuf !'}</p>
+      <p class="petit">Nourris-le, joue avec lui et entraîne-le pour qu’il grandisse.</p></div>`;
+  }
+  const C=S.combat;
+  if(!C){
+    const sj=statsJ();
+    return `<div class="carte" style="text-align:center"><div class="scene">${'<div class="soleil"></div><div class="volcan"></div>'}${dinoSVG(d.espece,{stage:3,sale:d.proprete<40})}</div>
+      <p style="margin:10px 0 4px"><b>Prêt à combattre ?</b> Un adversaire sauvage de ton niveau t’attend.</p>
+      <div class="stats" style="margin-bottom:12px"><span>❤️ ${sj.pvMax}</span><span>💪 ${sj.force}</span><span>🛡️ ${sj.def}</span><span>⚡ ${sj.vit}</span></div>
+      <button class="btn principal large" data-act="combat">⚔️ Trouver un adversaire (−25 ⚡)</button>
+      <p class="petit">Énergie actuelle : ${Math.round(d.energie)} · Bilan : ${d.victoires} victoire(s), ${d.defaites} défaite(s)</p></div>`;
+  }
+  const sj=statsJ(), sa=statsA(), a=C.adv;
+  const pvBox=(nom,pv,max,niv)=>`<div class="pv-box">${esc(nom)} <span class="petit">niv. ${niv}</span><div class="barre"><i style="width:${pv/max*100}%;background:${couleurBarre(pv/max*100)}"></i></div><span class="petit">${pv} / ${max} PV</span></div>`;
+  const coups = C.fini
+    ? `<div class="resultat">${C.fini.gagne?'🏆 Victoire !':'😵 Défaite…'}</div>
+       <p style="text-align:center;margin:0 0 10px">${C.fini.gagne?`+${C.fini.xp} XP · +${C.fini.pieces} 🪙`:`+${C.fini.xp} XP de consolation. Soigne ton dino et reviens plus fort !`}</p>
+       <button class="btn principal large" data-act="fin">Retour</button>`
+    : `<div class="coups">${Object.entries(MOVES).map(([k,m])=>`<button class="btn" data-act="coup" data-arg="${k}"><span class="em">${m.emoji}</span>${m.nom}<br><span class="petit">${m.aide}</span></button>`).join('')}</div>
+       <div class="pied" style="margin-top:10px"><button class="btn rouge" data-act="fuir">🏃 Fuir</button></div>`;
+  return `<div class="carte"><div class="scene combat-scene"><div class="soleil"></div>
+      <div class="cote">${pvBox(d.nom,C.pv,sj.pvMax,d.niveau)}${dinoSVG(d.espece,{stage:3,id:'dino-j',sale:d.proprete<40})}</div>
+      <div class="cote">${pvBox(a.nom,C.pvAdv,sa.pvMax,a.niveau)}${dinoSVG(a.espece,{stage:3,flip:true,id:'dino-a',couleur:shade(SPECIES[a.espece].couleur,-28)})}</div></div>
+    <div class="journal">${C.log.map(l=>`<p>${l}</p>`).join('')}</div>${coups}</div>`;
+}
+function viewBoutique(){
+  const d=S.dino;
+  if(!d.eclos) return `<div class="carte verrou"><div class="em">🥚</div><b>La boutique ouvre quand ton œuf aura éclos.</b></div>`;
+  return `<div class="carte"><b style="font-size:18px">Boutique de la Préhistoire</b><p class="petit" style="margin-top:0">Gagne des pièces 🪙 en remportant des combats dans l’arène.</p>
+    ${SHOP.map(it=>`<div class="boutique-item"><span class="em">${it.emoji}</span><div><b>${it.nom}</b><span class="petit">${it.desc}</span></div>
+    <button class="btn vert" data-act="acheter" data-arg="${it.id}" ${d.pieces<it.prix?'disabled':''}>${it.prix} 🪙</button></div>`).join('')}</div>`;
+}
+function viewModal(){
+  return `<div class="modal"><div class="carte"><div style="font-size:44px">🌋</div><b style="font-size:19px">Relâcher ${esc(S.dino.nom)} dans la nature ?</b>
+    <p>Ta partie sera effacée et tu pourras adopter un nouvel œuf.</p>
+    <div style="display:flex;gap:8px"><button class="btn large" data-act="modal-non">Annuler</button><button class="btn rouge large" data-act="relacher">Relâcher</button></div></div></div>`;
+}
+function render(){
+  const app=document.getElementById('app');
+  if(!S.dino){ app.innerHTML=viewAdoption(); return; }
+  const corps = S.onglet==='maison'?viewMaison():S.onglet==='arene'?viewArene():viewBoutique();
+  app.innerHTML = viewEntete() + corps + `<div class="pied"><button class="lien" data-act="modal">Relâcher mon dino et recommencer</button></div>` + (S.modal?viewModal():'');
+  S.anim=null;
+}
+function majBarres(){
+  const d=S.dino; if(!d||!d.eclos||S.onglet!=='maison') return;
+  for(const k of ['faim','bonheur','energie','proprete']){
+    const b=document.getElementById('b-'+k), v=document.getElementById('v-'+k);
+    if(b){ b.style.width=d[k]+'%'; b.style.background=couleurBarre(d[k]); } if(v) v.textContent=Math.round(d[k]);
+  }
+  const h=document.getElementById('humeur'); if(h) h.textContent=humeur(d);
+}
+
+/* ========= Événements ========= */
+document.addEventListener('input',e=>{ if(e.target.id==='nom') S.nomTmp=e.target.value; });
+document.addEventListener('keydown',e=>{ if(e.target.id==='nom' && e.key==='Enter') adopter(); });
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el||el.disabled) return;
+  const a=el.dataset.act, arg=el.dataset.arg;
+  if(a==='choisir'){ S.choix=arg; render(); }
+  else if(a==='adopter') adopter();
+  else if(a==='onglet'){ S.onglet=arg; render(); }
+  else if(a==='action') action(arg);
+  else if(a==='acheter') acheter(arg);
+  else if(a==='combat') lancerCombat();
+  else if(a==='coup') tour(arg);
+  else if(a==='fuir') fuir();
+  else if(a==='fin') finCombat();
+  else if(a==='modal'){ S.modal=true; render(); }
+  else if(a==='modal-non'){ S.modal=false; render(); }
+  else if(a==='relacher'){ S={dino:null,onglet:'maison',combat:null,choix:'rex',nomTmp:'',modal:false,anim:null}; try{localStorage.removeItem(CLE);}catch(e){} render(); }
+});
+
+/* ========= Démarrage ========= */
+load();
+if(S.dino){ const n=Math.min(80,Math.floor((Date.now()-(S.dino.last||Date.now()))/3000)); decay(n,false); }
+render();
+setInterval(()=>{
+  if(!S.dino) return;
+  const change=decay(1,true); save();
+  if(change && S.onglet==='maison' && !S.modal) render(); else majBarres();
+},3000);
+
+/* ========= PWA : mode hors ligne ========= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+</script>
+</body>
+</html>
